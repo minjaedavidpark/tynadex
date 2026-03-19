@@ -37,15 +37,23 @@ export default function SignUpScreen() {
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: "tynadex://sign-in",
+      },
+    });
     setLoading(false);
 
     if (error) {
       Alert.alert("Sign Up Failed", error.message);
+    } else if (data.session) {
+      // Email confirmation is disabled — user is signed in immediately
     } else {
       Alert.alert(
         "Check your email",
-        "We sent you a confirmation link. Please verify your email before signing in.",
+        "We sent you a confirmation link. Tap it on this device to open the app.",
       );
     }
   }
