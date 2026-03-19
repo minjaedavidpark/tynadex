@@ -2,11 +2,7 @@ import { useEffect, useState } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Session } from "@supabase/supabase-js";
-import * as Linking from "expo-linking";
-import * as WebBrowser from "expo-web-browser";
 import { supabase } from "@/lib/supabase";
-
-WebBrowser.maybeCompleteAuthSession();
 
 function useProtectedRoute(session: Session | null, initialized: boolean) {
   const segments = useSegments();
@@ -23,26 +19,6 @@ function useProtectedRoute(session: Session | null, initialized: boolean) {
       router.replace("/(tabs)");
     }
   }, [session, initialized, segments]);
-}
-
-function useOAuthDeepLink() {
-  useEffect(() => {
-    const handleUrl = async (url: string) => {
-      if (url.includes("code=") || url.includes("access_token=")) {
-        await supabase.auth.exchangeCodeForSession(url);
-      }
-    };
-
-    Linking.getInitialURL().then((url) => {
-      if (url) handleUrl(url);
-    });
-
-    const subscription = Linking.addEventListener("url", ({ url }) => {
-      handleUrl(url);
-    });
-
-    return () => subscription.remove();
-  }, []);
 }
 
 export default function RootLayout() {
@@ -65,7 +41,6 @@ export default function RootLayout() {
   }, []);
 
   useProtectedRoute(session, initialized);
-  useOAuthDeepLink();
 
   return (
     <>
