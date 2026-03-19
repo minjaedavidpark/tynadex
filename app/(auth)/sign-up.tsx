@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { Link } from "expo-router";
 import { supabase } from "@/lib/supabase";
+import { signInWithGoogle } from "@/lib/auth";
 import { Colors } from "@/constants/Colors";
 
 export default function SignUpScreen() {
@@ -19,6 +20,18 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  async function handleGoogleSignIn() {
+    setGoogleLoading(true);
+    try {
+      await signInWithGoogle();
+    } catch {
+      Alert.alert("Google Sign In Failed", "Something went wrong. Please try again.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  }
 
   async function handleSignUp() {
     if (!email || !password || !confirmPassword) {
@@ -108,6 +121,24 @@ export default function SignUpScreen() {
               <Text style={styles.buttonText}>Create Account</Text>
             )}
           </Pressable>
+
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <Pressable
+            style={[styles.googleButton, googleLoading && styles.buttonDisabled]}
+            onPress={handleGoogleSignIn}
+            disabled={googleLoading}
+          >
+            {googleLoading ? (
+              <ActivityIndicator color={Colors.text} />
+            ) : (
+              <Text style={styles.googleButtonText}>Continue with Google</Text>
+            )}
+          </Pressable>
         </View>
 
         <View style={styles.footer}>
@@ -177,6 +208,36 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "700",
+  },
+  dividerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+    gap: 10,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.border,
+  },
+  dividerText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+  },
+  googleButton: {
+    width: "100%",
+    height: 52,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.surface,
+  },
+  googleButtonText: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: "600",
   },
   footer: {
     flexDirection: "row",
