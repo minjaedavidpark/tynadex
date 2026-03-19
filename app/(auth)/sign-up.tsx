@@ -5,34 +5,39 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import { supabase } from "@/lib/supabase";
-import { Colors } from "@/constants/Colors";
+import { Fonts } from "@/constants/Fonts";
 
 export default function SignUpScreen() {
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSignUp() {
-    if (!email || !password || !confirmPassword) {
+    if (!fullName || !email || !phone || !password) {
       Alert.alert("Error", "Please fill in all fields.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match.");
       return;
     }
 
     if (password.length < 6) {
       Alert.alert("Error", "Password must be at least 6 characters.");
+      return;
+    }
+
+    if (!termsAccepted) {
+      Alert.alert("Error", "Please accept the Terms and Conditions.");
       return;
     }
 
@@ -42,6 +47,10 @@ export default function SignUpScreen() {
       password,
       options: {
         emailRedirectTo: "tynadex://sign-in",
+        data: {
+          full_name: fullName,
+          phone,
+        },
       },
     });
     setLoading(false);
@@ -63,132 +72,257 @@ export default function SignUpScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={styles.inner}>
-        <Text style={styles.logo}>Tynadex</Text>
-        <Text style={styles.tagline}>Create your account</Text>
+      <SafeAreaView style={styles.safe}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.top}>
+            <Text style={styles.title}>Get Started</Text>
+            <Text style={styles.subtitle}>by creating a free account.</Text>
+          </View>
 
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor={Colors.textSecondary}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor={Colors.textSecondary}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoComplete="new-password"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm Password"
-            placeholderTextColor={Colors.textSecondary}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            autoComplete="new-password"
-          />
+          <View style={styles.form}>
+            <View style={styles.field}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Full name"
+                placeholderTextColor={COLORS.placeholder}
+                value={fullName}
+                onChangeText={setFullName}
+                autoCapitalize="words"
+                autoComplete="name"
+              />
+              <Ionicons name="person-outline" size={20} color={COLORS.icon} />
+            </View>
 
-          <Pressable
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleSignUp}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Create Account</Text>
-            )}
-          </Pressable>
-        </View>
+            <View style={[styles.field, styles.fieldSpacing]}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Valid email"
+                placeholderTextColor={COLORS.placeholder}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoComplete="email"
+              />
+              <Ionicons name="mail-outline" size={20} color={COLORS.icon} />
+            </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
-          <Link href="/(auth)/sign-in" asChild>
-            <Pressable>
-              <Text style={styles.footerLink}>Sign In</Text>
+            <View style={[styles.field, styles.fieldSpacing]}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Phone number"
+                placeholderTextColor={COLORS.placeholder}
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                autoComplete="tel"
+              />
+              <Ionicons name="call-outline" size={20} color={COLORS.icon} />
+            </View>
+
+            <View style={[styles.field, styles.fieldSpacing]}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Strong Password"
+                placeholderTextColor={COLORS.placeholder}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoComplete="new-password"
+              />
+              <Ionicons name="lock-closed-outline" size={20} color={COLORS.icon} />
+            </View>
+
+            <Pressable
+              onPress={() => setTermsAccepted((v) => !v)}
+              style={styles.termsRow}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  termsAccepted && styles.checkboxChecked,
+                ]}
+              >
+                {termsAccepted ? (
+                  <Ionicons name="checkmark" size={14} color={COLORS.white} />
+                ) : null}
+              </View>
+
+              <Text style={styles.termsText}>
+                By checking the box you agree to our{" "}
+                <Text style={styles.termsLink}>Terms and Conditions</Text>.
+              </Text>
             </Pressable>
-          </Link>
-        </View>
-      </View>
+
+            <Pressable
+              style={[styles.primaryButton, loading && styles.buttonDisabled]}
+              onPress={handleSignUp}
+              disabled={loading}
+            >
+              <View style={styles.primaryButtonInner}>
+                <Text style={styles.primaryButtonText}>Next</Text>
+                {loading ? (
+                  <ActivityIndicator color={COLORS.white} />
+                ) : (
+                  <Ionicons name="chevron-forward" size={18} color={COLORS.white} />
+                )}
+              </View>
+            </Pressable>
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Already a member?</Text>
+            <Link href="/(auth)/sign-in" asChild>
+              <Pressable>
+                <Text style={styles.footerLink}>Log In</Text>
+              </Pressable>
+            </Link>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }
 
+const COLORS = {
+  white: "#FFFFFF",
+  text: "#111827",
+  subtitle: "#6B7280",
+  placeholder: "#9CA3AF",
+  icon: "#9CA3AF",
+  inputBg: "#F3F4F6",
+  primary: "#5B8EF6",
+  checkboxBorder: "#C9D2E0",
+} as const;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: COLORS.white,
   },
-  inner: {
+  safe: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: 24,
+    paddingVertical: 28,
+    justifyContent: "space-between",
   },
-  logo: {
-    fontSize: 40,
-    fontWeight: "900",
-    color: Colors.primary,
-    letterSpacing: -1,
+  top: {
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 30,
+    fontFamily: Fonts.bold,
+    color: COLORS.text,
     marginBottom: 6,
+    textAlign: "center",
   },
-  tagline: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    marginBottom: 40,
+  subtitle: {
+    fontSize: 14,
+    fontFamily: Fonts.regular,
+    color: COLORS.subtitle,
+    textAlign: "center",
   },
   form: {
     width: "100%",
-    gap: 12,
+    marginTop: 22,
   },
-  input: {
+  field: {
     width: "100%",
     height: 52,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    borderRadius: 12,
+    backgroundColor: COLORS.inputBg,
+    borderRadius: 14,
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
-    fontSize: 16,
-    color: Colors.text,
-    backgroundColor: Colors.surface,
   },
-  button: {
-    width: "100%",
-    height: 52,
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
+  fieldSpacing: {
+    marginTop: 12,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: Fonts.regular,
+    color: COLORS.text,
+    paddingVertical: 0,
+  },
+  termsRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginTop: 14,
+    marginBottom: 18,
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: COLORS.checkboxBorder,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 4,
+    backgroundColor: "transparent",
+    marginTop: 2,
+  },
+  checkboxChecked: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  termsText: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 13,
+    fontFamily: Fonts.regular,
+    color: COLORS.subtitle,
+    lineHeight: 18,
+  },
+  termsLink: {
+    fontFamily: Fonts.medium,
+    color: COLORS.primary,
+    textDecorationLine: "underline",
+  },
+  primaryButton: {
+    width: "100%",
+    height: 56,
+    backgroundColor: COLORS.primary,
+    borderRadius: 28,
+    justifyContent: "center",
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: 0.65,
   },
-  buttonText: {
-    color: "#fff",
+  primaryButtonInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 24,
+  },
+  primaryButtonText: {
+    color: COLORS.white,
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: Fonts.bold,
   },
   footer: {
     flexDirection: "row",
-    marginTop: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingBottom: 8,
   },
   footerText: {
-    color: Colors.textSecondary,
-    fontSize: 15,
+    fontSize: 13,
+    fontFamily: Fonts.regular,
+    color: COLORS.subtitle,
   },
   footerLink: {
-    color: Colors.primary,
-    fontSize: 15,
-    fontWeight: "600",
+    marginLeft: 6,
+    fontSize: 13,
+    fontFamily: Fonts.medium,
+    color: COLORS.primary,
+    textDecorationLine: "underline",
   },
 });
