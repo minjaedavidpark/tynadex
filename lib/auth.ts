@@ -1,20 +1,26 @@
 import * as WebBrowser from "expo-web-browser";
 import Constants from "expo-constants";
+import { Alert } from "react-native";
 import { supabase } from "@/lib/supabase";
 
 function getOAuthRedirectUri(): string {
-  // Expo Go uses its own exp:// scheme (registered by the Expo Go app).
-  // Standalone/dev builds use the custom tynadex:// scheme from app.json.
   const isExpoGo = Constants.executionEnvironment === "storeClient";
   if (isExpoGo) {
-    const hostUri = Constants.expoConfig?.hostUri ?? "localhost:8081";
-    return `exp://${hostUri}`;
+    // experienceUrl gives the full exp://ip:port URL that Expo Go has registered
+    const experienceUrl = Constants.experienceUrl;
+    if (experienceUrl) return experienceUrl;
+    // Fallback: build from hostUri
+    const hostUri = Constants.expoConfig?.hostUri;
+    if (hostUri) return `exp://${hostUri}`;
   }
   return "tynadex://";
 }
 
 export async function signInWithGoogle() {
   const redirectTo = getOAuthRedirectUri();
+
+  // Temporary: show the redirect URI so we can verify it
+  Alert.alert("Debug: Redirect URI", redirectTo);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
