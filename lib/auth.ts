@@ -1,11 +1,16 @@
 import * as WebBrowser from "expo-web-browser";
-import * as Linking from "expo-linking";
+import Constants from "expo-constants";
 import { supabase } from "@/lib/supabase";
 
-// In Expo Go: exp://192.168.x.x:8081  (registered scheme — iOS can intercept it)
-// In a standalone/dev build: tynadex://  (registered via app.json scheme)
-export function getOAuthRedirectUri() {
-  return Linking.createURL("/");
+function getOAuthRedirectUri(): string {
+  // Expo Go uses its own exp:// scheme (registered by the Expo Go app).
+  // Standalone/dev builds use the custom tynadex:// scheme from app.json.
+  const isExpoGo = Constants.executionEnvironment === "storeClient";
+  if (isExpoGo) {
+    const hostUri = Constants.expoConfig?.hostUri ?? "localhost:8081";
+    return `exp://${hostUri}`;
+  }
+  return "tynadex://";
 }
 
 export async function signInWithGoogle() {
@@ -27,3 +32,5 @@ export async function signInWithGoogle() {
     await supabase.auth.exchangeCodeForSession(result.url);
   }
 }
+
+export { getOAuthRedirectUri };
