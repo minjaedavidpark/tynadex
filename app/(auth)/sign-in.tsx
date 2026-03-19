@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { Link } from "expo-router";
 import { supabase } from "@/lib/supabase";
-import { signInWithGoogle } from "@/lib/auth";
+import { signInWithGoogle, oauthRedirectUri } from "@/lib/auth";
 import { Colors } from "@/constants/Colors";
 
 export default function SignInScreen() {
@@ -26,7 +26,10 @@ export default function SignInScreen() {
     try {
       await signInWithGoogle();
     } catch {
-      Alert.alert("Google Sign In Failed", "Something went wrong. Please try again.");
+      Alert.alert(
+        "Google Sign In Failed",
+        `Something went wrong.\n\nRedirect URI in use:\n${oauthRedirectUri}\n\nMake sure this is added to Supabase's allowed redirect URLs.`,
+      );
     } finally {
       setGoogleLoading(false);
     }
