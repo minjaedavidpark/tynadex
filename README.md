@@ -47,9 +47,24 @@ cd tynadex
 # Install dependencies
 npm install
 
+# Set up environment variables
+cp .env.example .env
+# Fill in your Supabase URL and anon key in .env
+
 # Start the dev server
 npx expo start
 ```
+
+### Environment Variables
+
+Create a `.env` file at the root (it is gitignored):
+
+```
+EXPO_PUBLIC_SUPABASE_URL=https://<your-project-ref>.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
+```
+
+Find these values in your [Supabase dashboard](https://supabase.com/dashboard) under **Project Settings → API**.
 
 Scan the QR code with Expo Go (Android) or the Camera app (iOS) to open on your device.
 
