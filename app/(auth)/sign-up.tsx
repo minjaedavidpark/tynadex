@@ -49,6 +49,7 @@ export default function SignUpScreen() {
         emailRedirectTo: "tynadex://sign-in",
         data: {
           full_name: fullName,
+          display_name: fullName,
           phone,
         },
       },
