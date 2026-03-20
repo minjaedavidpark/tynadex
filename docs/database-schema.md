@@ -287,6 +287,10 @@ Every table has RLS enabled. Key policies:
 | `avatars` | User profile pictures | Yes |
 | `binder-covers` | Custom binder cover images | Yes |
 
+Apply `supabase/migrations/00002_storage_avatars.sql` and `00003_profiles_insert_rls.sql` in the Supabase SQL editor (or via CLI).
+
+**If uploads or name save still show RLS errors**, open **`supabase/migrations/00004_rls_hotfix_run_in_dashboard.sql`**, copy the whole file into **Dashboard → SQL → New query**, and **Run** once. It reapplies bucket + storage policies (using `split_part` + `auth.uid()`, which fixes common Supabase policy issues) and the `profiles` insert policy + `GRANT`.
+
 ---
 
 ## Key Queries

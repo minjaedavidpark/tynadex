@@ -1,22 +1,82 @@
-import { useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "@/lib/supabase";
+import { uploadProfileAvatar } from "@/lib/avatars";
+import { type ProfileRow, saveProfileFields } from "@/lib/profileDb";
 import { Colors } from "@/constants/Colors";
 import { Fonts } from "@/constants/Fonts";
 
 export default function ProfileScreen() {
   const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profile, setProfile] = useState<ProfileRow | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [nameModalVisible, setNameModalVisible] = useState(false);
+  const [draftName, setDraftName] = useState("");
+  const [savingName, setSavingName] = useState(false);
+
   const [activeSection, setActiveSection] = useState<
     "achievements" | "reviews" | "settings"
   >("achievements");
 
   const trophies = useMemo(() => Array.from({ length: 9 }, (_, i) => i), []);
 
-  const friendId = "1234-1234-1234-1234";
   const levelText = "Lv.100";
-  const nameText = "Name";
+
+  const displayName = profile?.display_name?.trim() || profile?.username || "Trainer";
+  const tynadexId = profile?.username ?? "—";
+
+  const loadProfile = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      setProfile(null);
+      setProfileLoading(false);
+      return;
+    }
+
+    setProfileLoading(true);
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, username, display_name, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    setProfileLoading(false);
+
+    if (error) {
+      console.error(error);
+      Alert.alert("Profile", "Could not load your profile. Check your connection.");
+      return;
+    }
+
+    if (data) {
+      setProfile(data as ProfileRow);
+    } else {
+      setProfile(null);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadProfile();
+    }, [loadProfile]),
+  );
 
   async function handleSignOut() {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -33,31 +93,152 @@ export default function ProfileScreen() {
     ]);
   }
 
+  function openNameEditor() {
+    setDraftName(profile?.display_name ?? profile?.username ?? "");
+    setNameModalVisible(true);
+  }
+
+  async function saveDisplayName() {
+    const trimmed = draftName.trim();
+    if (!trimmed) {
+      Alert.alert("Name", "Please enter a name.");
+      return;
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    setSavingName(true);
+    const { data, errorMessage } = await saveProfileFields(
+      user,
+      profile,
+      { display_name: trimmed },
+    );
+    setSavingName(false);
+
+    if (errorMessage) {
+      Alert.alert(
+        "Could not save",
+        `${errorMessage}\n\nIf you use Supabase RLS, run migration 00003_profiles_insert_rls.sql so new profile rows can be created when needed.`,
+      );
+      return;
+    }
+
+    if (data) {
+      setProfile(data);
+    }
+    setNameModalVisible(false);
+  }
+
+  async function pickAndUploadAvatar() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert(
+        "Permission needed",
+        "Allow photo library access to set your profile picture.",
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.85,
+    });
+
+    if (result.canceled) return;
+
+    const asset = result.assets[0];
+    setUploadingAvatar(true);
+
+    const upload = await uploadProfileAvatar({
+      userId: user.id,
+      localUri: asset.uri,
+      mimeType: asset.mimeType ?? undefined,
+    });
+
+    if ("error" in upload) {
+      setUploadingAvatar(false);
+      Alert.alert(
+        "Upload failed",
+        `${upload.error}\n\nIf this is your first time, create the "avatars" bucket and storage policies in Supabase (see supabase/migrations/00002_storage_avatars.sql).`,
+      );
+      return;
+    }
+
+    const { data, errorMessage } = await saveProfileFields(user, profile, {
+      avatar_url: upload.publicUrl,
+    });
+
+    setUploadingAvatar(false);
+
+    if (errorMessage) {
+      Alert.alert(
+        "Could not save avatar",
+        `${errorMessage}\n\nPhoto uploaded to storage, but saving the URL failed. Check RLS / profiles insert policy (00003).`,
+      );
+      return;
+    }
+
+    if (data) {
+      setProfile(data);
+    }
+  }
+
+  if (profileLoading && !profile) {
+    return (
+      <SafeAreaView style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.top}>
         <Text style={styles.friendLabel}>Tynadex ID</Text>
-        <Text style={styles.friendId}>{friendId}</Text>
+        <Text style={styles.friendId}>{tynadexId}</Text>
       </View>
 
-      <View style={styles.avatarWrap}>
-        <View style={styles.avatarPlaceholder}>
-          <Ionicons name="person" size={44} color="#ffffff" />
-        </View>
-      </View>
+      <Pressable
+        style={styles.avatarWrap}
+        onPress={pickAndUploadAvatar}
+        disabled={uploadingAvatar || profileLoading}
+      >
+        {uploadingAvatar ? (
+          <View style={[styles.avatarPlaceholder, styles.avatarBusy]}>
+            <ActivityIndicator color="#ffffff" />
+          </View>
+        ) : profile?.avatar_url ? (
+          <Image source={{ uri: profile.avatar_url }} style={styles.avatarImage} />
+        ) : (
+          <View style={styles.avatarPlaceholder}>
+            <Ionicons name="person" size={44} color="#ffffff" />
+            <Text style={styles.avatarHint}>Tap to add photo</Text>
+          </View>
+        )}
+      </Pressable>
 
       <View style={styles.identity}>
         <Text style={styles.level}>{levelText}</Text>
-        <View style={styles.nameRow}>
-          <Text style={styles.name}>{nameText}</Text>
+        <Pressable style={styles.nameRow} onPress={openNameEditor}>
+          <Text style={styles.name}>{displayName}</Text>
           <Ionicons name="create" size={18} color="#111827" />
-        </View>
+        </Pressable>
       </View>
 
       <View style={styles.statsCard}>
-        <Stat label="Cards" value="170" />
-        <Stat label="Market Value" value="$2,000" />
-        <Stat label="Paid" value="$4,000" />
+        <Stat label="Cards" value="0" />
+        <Stat label="Market Value" value="$0" />
+        <Stat label="Paid" value="$0" />
       </View>
 
       <View style={styles.pillsRow}>
@@ -98,10 +279,7 @@ export default function ProfileScreen() {
         <View style={styles.placeholderSection}>
           <Text style={styles.placeholderText}>Settings</Text>
           <Pressable
-            style={[
-              styles.signOutButton,
-              loading && styles.buttonDisabled,
-            ]}
+            style={[styles.signOutButton, loading && styles.buttonDisabled]}
             onPress={handleSignOut}
             disabled={loading}
           >
@@ -113,6 +291,49 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
       ) : null}
+
+      <Modal
+        visible={nameModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setNameModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Display name</Text>
+            <TextInput
+              value={draftName}
+              onChangeText={setDraftName}
+              placeholder="Your name"
+              placeholderTextColor="#9CA3AF"
+              style={styles.modalInput}
+              autoFocus
+              autoCapitalize="words"
+              editable={!savingName}
+            />
+            <View style={styles.modalActions}>
+              <Pressable
+                style={styles.modalButtonGhost}
+                onPress={() => setNameModalVisible(false)}
+                disabled={savingName}
+              >
+                <Text style={styles.modalButtonGhostText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.modalButtonPrimary, savingName && styles.buttonDisabled]}
+                onPress={() => void saveDisplayName()}
+                disabled={savingName}
+              >
+                {savingName ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <Text style={styles.modalButtonPrimaryText}>Save</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -153,6 +374,10 @@ function Pill({
 }
 
 const styles = StyleSheet.create({
+  centered: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
   container: {
     flex: 1,
     alignItems: "center",
@@ -160,7 +385,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     paddingHorizontal: 24,
     paddingTop: 0,
-    paddingBottom: 96, // keep content clear of the floating tab bar
+    paddingBottom: 96,
   },
 
   top: {
@@ -192,6 +417,11 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     backgroundColor: "#000000",
   },
+  avatarImage: {
+    width: 138,
+    height: 138,
+    borderRadius: 999,
+  },
   avatarPlaceholder: {
     width: 138,
     height: 138,
@@ -199,6 +429,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#000000",
     alignItems: "center",
     justifyContent: "center",
+  },
+  avatarBusy: {
+    justifyContent: "center",
+  },
+  avatarHint: {
+    marginTop: 6,
+    fontSize: 10,
+    fontFamily: Fonts.regular,
+    color: "#9CA3AF",
+    textAlign: "center",
+    paddingHorizontal: 8,
   },
 
   identity: {
@@ -325,5 +566,61 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontSize: 16,
     fontFamily: Fonts.semibold,
+  },
+
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.bold,
+    color: "#111827",
+    marginBottom: 12,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
+    fontFamily: Fonts.regular,
+    color: "#111827",
+    marginBottom: 16,
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 12,
+  },
+  modalButtonGhost: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  modalButtonGhostText: {
+    fontFamily: Fonts.medium,
+    color: "#6B7280",
+    fontSize: 15,
+  },
+  modalButtonPrimary: {
+    backgroundColor: Colors.primary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    minWidth: 88,
+    alignItems: "center",
+  },
+  modalButtonPrimaryText: {
+    color: "#ffffff",
+    fontFamily: Fonts.semibold,
+    fontSize: 15,
   },
 });
