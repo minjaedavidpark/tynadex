@@ -14,11 +14,11 @@ import { useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { supabase } from "@/lib/supabase";
-import { uploadProfileAvatar } from "@/lib/avatars";
-import { type ProfileRow, saveProfileFields } from "@/lib/profileDb";
-import { Colors } from "@/constants/Colors";
-import { Fonts } from "@/constants/Fonts";
+import { supabase } from "@/src/lib/supabase";
+import { uploadProfileAvatar } from "@/src/lib/avatars";
+import { type ProfileRow, saveProfileFields } from "@/src/lib/profileDb";
+import { Colors } from "@/src/constants/Colors";
+import { Fonts } from "@/src/constants/Fonts";
 
 export default function ProfileScreen() {
   const [loading, setLoading] = useState(false);

@@ -13,7 +13,7 @@ import {
 import { Session } from "@supabase/supabase-js";
 import { ActivityIndicator, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/src/lib/supabase";
 
 function useProtectedRoute(session: Session | null, initialized: boolean) {
   const segments = useSegments();

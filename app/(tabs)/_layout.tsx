@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Fonts } from "@/constants/Fonts";
+import { Fonts } from "@/src/constants/Fonts";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function TabLayout() {

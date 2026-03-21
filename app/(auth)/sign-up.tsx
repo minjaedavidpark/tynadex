@@ -14,8 +14,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
-import { supabase } from "@/lib/supabase";
-import { Fonts } from "@/constants/Fonts";
+import { supabase } from "@/src/lib/supabase";
+import { Fonts } from "@/src/constants/Fonts";
 
 export default function SignUpScreen() {
   const [fullName, setFullName] = useState("");
