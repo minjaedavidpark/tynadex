@@ -1,4 +1,4 @@
-# Tynadex
+# TogeDex
 
 A mobile app for Pokemon TCG collectors to manage their card binders, discover nearby traders, and facilitate trades — all from their phone.
 
@@ -41,8 +41,8 @@ A mobile app for Pokemon TCG collectors to manage their card binders, discover n
 
 ```bash
 # Clone the repo
-git clone https://github.com/minjaedavidpark/tynadex.git
-cd tynadex
+git clone https://github.com/minjaedavidpark/togedex.git
+cd togedex
 
 # Install dependencies
 npm install
@@ -71,7 +71,7 @@ Scan the QR code with Expo Go (Android) or the Camera app (iOS) to open on your 
 ## Project Structure
 
 ```
-tynadex/
+togedex/
 ├── app/                # Expo Router screens & layouts
 ├── assets/             # Images, fonts, static files
 ├── components/         # Reusable UI components

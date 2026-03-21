@@ -46,7 +46,7 @@ export default function SignUpScreen() {
       email,
       password,
       options: {
-        emailRedirectTo: "tynadex://sign-in",
+        emailRedirectTo: "togedex://sign-in",
         data: {
           full_name: fullName,
           display_name: fullName,

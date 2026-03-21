@@ -1,5 +1,5 @@
 -- ============================================================
--- Tynadex: Initial Database Schema
+-- TogeDex: Initial Database Schema
 -- Pokemon TCG Binder & Trading Platform
 -- ============================================================
 
