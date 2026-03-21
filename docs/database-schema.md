@@ -1,8 +1,8 @@
-# Tynadex Database Schema
+# TogeDex Database Schema
 
 ## Overview
 
-Tynadex uses **PostgreSQL on Supabase** with PostGIS for location queries and Row Level Security (RLS) for data access control. The schema is defined in `supabase/migrations/00001_initial_schema.sql`.
+TogeDex uses **PostgreSQL on Supabase** with PostGIS for location queries and Row Level Security (RLS) for data access control. The schema is defined in `supabase/migrations/00001_initial_schema.sql`.
 
 ---
 

@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "Tynadex",
-    "slug": "tynadex",
+    "name": "TogeDex",
+    "slug": "togedex",
     "version": "0.1.0",
-    "scheme": "tynadex",
+    "scheme": "togedex",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.tynadex.app",
+      "bundleIdentifier": "com.togedex.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -26,7 +26,7 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.tynadex.app"
+      "package": "com.togedex.app"
     },
     "web": {
       "bundler": "metro",
@@ -37,7 +37,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Tynadex needs access to your photos to set your profile picture."
+          "photosPermission": "TogeDex needs access to your photos to set your profile picture."
         }
       ]
     ]

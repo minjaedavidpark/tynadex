@@ -38,7 +38,7 @@ export default function ProfileScreen() {
   const levelText = "Lv.100";
 
   const displayName = profile?.display_name?.trim() || profile?.username || "Trainer";
-  const tynadexId = profile?.username ?? "—";
+  const togedexId = profile?.username ?? "—";
 
   const loadProfile = useCallback(async () => {
     const {
@@ -204,8 +204,8 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.top}>
-        <Text style={styles.friendLabel}>Tynadex ID</Text>
-        <Text style={styles.friendId}>{tynadexId}</Text>
+        <Text style={styles.friendLabel}>TogeDex ID</Text>
+        <Text style={styles.friendId}>{togedexId}</Text>
       </View>
 
       <Pressable
