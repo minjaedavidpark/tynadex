@@ -1,5 +1,5 @@
 import type { User } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/src/lib/supabase";
 
 export type ProfileRow = {
   id: string;

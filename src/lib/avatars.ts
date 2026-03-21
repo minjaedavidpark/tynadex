@@ -1,5 +1,5 @@
 import { File } from "expo-file-system";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/src/lib/supabase";
 
 const BUCKET = "avatars";
 

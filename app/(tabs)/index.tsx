@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Fonts } from "@/constants/Fonts";
+import { Fonts } from "@/src/constants/Fonts";
 import { useRouter } from "expo-router";
 
 const COLORS = {
