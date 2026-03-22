@@ -18,6 +18,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { supabase } from "@/src/lib/supabase";
+import { ensureProfile } from "@/src/lib/profileDb";
 import { Fonts } from "@/src/constants/Fonts";
 import {
   getUserBinders,
@@ -69,6 +70,7 @@ export default function BinderScreen() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
+      await ensureProfile(user);
       const data = await getUserBinders(user.id);
       setBinders(data);
     } catch (err) {
