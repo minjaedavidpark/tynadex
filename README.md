@@ -68,6 +68,25 @@ Find these values in your [Supabase dashboard](https://supabase.com/dashboard) u
 
 Scan the QR code with Expo Go (Android) or the Camera app (iOS) to open on your device.
 
+## Testing
+
+**Unit tests** (query parsing, cache key, TCGdex URL building — no network):
+
+```bash
+npm test
+```
+
+**Edge Function integration tests** (optional — needs local Supabase + `supabase functions serve`):
+
+```bash
+# PowerShell example
+$env:SUPABASE_FUNCTIONS_TEST_BASE="http://127.0.0.1:54321/functions/v1"
+$env:SUPABASE_FUNCTIONS_TEST_ANON_KEY="<Publishable key from npx supabase status>"
+npm run test:integration
+```
+
+If those env vars are unset, integration tests are skipped.
+
 ## Project Structure
 
 ```
@@ -80,6 +99,8 @@ togedex/
 ├── lib/                # Supabase client, API helpers
 ├── store/              # Zustand stores
 ├── types/              # Shared TypeScript types
+├── tests/              # Vitest (Edge helpers + integration)
+├── supabase/           # Migrations + Edge Functions (`_shared` helpers)
 └── utils/              # Utility functions
 ```
 

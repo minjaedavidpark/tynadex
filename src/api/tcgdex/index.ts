@@ -1,3 +1,3 @@
-export * from "./cards";
-export * from "./sets";
 export * from "./types";
+export * from "./cards";
+export { invokeTcgdexGet, TcgdexApiError } from "./client";
