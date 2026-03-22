@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "@/src/lib/supabase";
 import { uploadProfileAvatar } from "@/src/lib/avatars";
 import { type ProfileRow, saveProfileFields } from "@/src/lib/profileDb";
+import { getTotalCardQuantity } from "@/src/services/userCards";
 import { Colors } from "@/src/constants/Colors";
 import { Fonts } from "@/src/constants/Fonts";
 
@@ -28,6 +29,7 @@ export default function ProfileScreen() {
   const [nameModalVisible, setNameModalVisible] = useState(false);
   const [draftName, setDraftName] = useState("");
   const [savingName, setSavingName] = useState(false);
+  const [totalCardQuantity, setTotalCardQuantity] = useState(0);
 
   const [activeSection, setActiveSection] = useState<
     "achievements" | "reviews" | "settings"
@@ -46,16 +48,26 @@ export default function ProfileScreen() {
     } = await supabase.auth.getUser();
     if (!user) {
       setProfile(null);
+      setTotalCardQuantity(0);
       setProfileLoading(false);
       return;
     }
 
     setProfileLoading(true);
+
     const { data, error } = await supabase
       .from("profiles")
       .select("id, username, display_name, avatar_url")
       .eq("id", user.id)
       .maybeSingle();
+
+    let cardQty = 0;
+    try {
+      cardQty = await getTotalCardQuantity(user.id);
+    } catch (e) {
+      console.error("Failed to load total card quantity:", e);
+    }
+    setTotalCardQuantity(cardQty);
 
     setProfileLoading(false);
 
@@ -236,7 +248,10 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.statsCard}>
-        <Stat label="Cards" value="0" />
+        <Stat
+          label="Cards"
+          value={totalCardQuantity.toLocaleString()}
+        />
         <Stat label="Market Value" value="$0" />
         <Stat label="Paid" value="$0" />
       </View>
